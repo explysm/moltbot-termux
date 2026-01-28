@@ -1,6 +1,6 @@
 {
   "name": "moltbot-termux",
-  "version": "2026.1.27-1",
+  "version": "2026.1.28-3-pre",
   "description": "WhatsApp gateway CLI (Baileys web) with Pi RPC agent",
   "type": "module",
   "main": "dist/index.js",
@@ -242,7 +242,8 @@
     "wireit": "^0.14.12"
   },
   "overrides": {
-    "tar": "7.5.4"
+    "tar": "7.5.4",
+    "@mariozechner/clipboard": "npm:noop-package@1.0.0"
   },
   "pnpm": {
     "minimumReleaseAge": 2880,
@@ -250,7 +251,7 @@
       "@sinclair/typebox": "0.34.47",
       "hono": "4.11.4",
       "tar": "7.5.4",
-      "@mariozechner/clipboard": "link:./packages/clipboard-stub"
+      "@mariozechner/clipboard": "npm:noop-package@1.0.0"
     }
   },
   "vitest": {
