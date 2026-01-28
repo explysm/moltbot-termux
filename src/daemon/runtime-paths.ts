@@ -37,7 +37,11 @@ function buildSystemNodeCandidates(
     return ["/opt/homebrew/bin/node", "/usr/local/bin/node", "/usr/bin/node"];
   }
   if (platform === "linux") {
-    return ["/usr/local/bin/node", "/usr/bin/node"];
+    return [
+      "/data/data/com.termux/files/usr/bin/node",
+      "/usr/local/bin/node",
+      "/usr/bin/node",
+    ];
   }
   if (platform === "win32") {
     const pathModule = getPathModule(platform);

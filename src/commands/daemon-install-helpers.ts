@@ -75,6 +75,9 @@ export async function buildGatewayInstallPlan(params: {
 }
 
 export function gatewayInstallErrorHint(platform = process.platform): string {
+  if (Boolean(process.env.TERMUX_VERSION)) {
+    return "Tip: Ensure termux-services is installed (pkg install termux-services) or run in the foreground.";
+  }
   return platform === "win32"
     ? "Tip: rerun from an elevated PowerShell (Start → type PowerShell → right-click → Run as administrator) or skip service install."
     : `Tip: rerun \`${formatCliCommand("moltbot gateway install")}\` after fixing the error.`;

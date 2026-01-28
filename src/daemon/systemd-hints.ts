@@ -13,6 +13,13 @@ export function isSystemdUnavailableDetail(detail?: string): boolean {
 }
 
 export function renderSystemdUnavailableHints(options: { wsl?: boolean } = {}): string[] {
+  if (Boolean(process.env.TERMUX_VERSION)) {
+    return [
+      "Termux detected: systemd is not available.",
+      "Install termux-services to enable background gateway support: pkg install termux-services",
+      "Then restart Termux and rerun this command.",
+    ];
+  }
   if (options.wsl) {
     return [
       "WSL2 needs systemd enabled: edit /etc/wsl.conf with [boot]\\nsystemd=true",

@@ -26,6 +26,14 @@ import {
   stopSystemdService,
   uninstallSystemdService,
 } from "./systemd.js";
+import {
+  installTermuxService,
+  isTermuxServiceLoaded,
+  readTermuxServiceRuntime,
+  restartTermuxService,
+  stopTermuxService,
+  uninstallTermuxService,
+} from "./termux.js";
 
 export type GatewayServiceInstallArgs = {
   env: Record<string, string | undefined>;
@@ -94,6 +102,24 @@ export function resolveGatewayService(): GatewayService {
   }
 
   if (process.platform === "linux") {
+    // Optimized for Termux: use runit-based termux-services.
+    // Fall back to systemd only if explicitly preferred or if on a non-Termux system where systemd exists.
+    const isTermux = Boolean(process.env.TERMUX_VERSION);
+    if (isTermux) {
+      return {
+        label: "Termux Service",
+        loadedText: "installed",
+        notLoadedText: "missing",
+        install: installTermuxService,
+        uninstall: uninstallTermuxService,
+        stop: stopTermuxService,
+        restart: restartTermuxService,
+        isLoaded: isTermuxServiceLoaded,
+        readCommand: readTermuxServiceCommand,
+        readRuntime: readTermuxServiceRuntime,
+      };
+    }
+
     return {
       label: "systemd",
       loadedText: "enabled",

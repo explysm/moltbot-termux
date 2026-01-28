@@ -111,13 +111,14 @@ type BrowserOpenCommand = {
 
 export async function resolveBrowserOpenCommand(): Promise<BrowserOpenCommand> {
   const platform = process.platform;
-  const hasDisplay = Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY);
+  const isTermux = Boolean(process.env.TERMUX_VERSION);
+  const hasDisplay = Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY) || isTermux;
   const isSsh =
     Boolean(process.env.SSH_CLIENT) ||
     Boolean(process.env.SSH_TTY) ||
     Boolean(process.env.SSH_CONNECTION);
 
-  if (isSsh && !hasDisplay && platform !== "win32") {
+  if (isSsh && !hasDisplay && platform !== "win32" && !isTermux) {
     return { argv: null, reason: "ssh-no-display" };
   }
 
