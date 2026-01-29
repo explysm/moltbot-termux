@@ -7,11 +7,15 @@ pkg update -y && pkg upgrade -y
 echo "Installing Node.js (LTS)..."
 pkg install nodejs-lts -y
 
-echo "Installing pnpm via npm..."
-npm install -g pnpm
+if ! command -v pnpm &> /dev/null; then
+    echo "Installing pnpm via npm..."
+    npm install -g pnpm
 
-echo "Setting up pnpm..."
-pnpm setup
+    echo "Setting up pnpm..."
+    pnpm setup
+else
+    echo "pnpm is already installed, skipping installation."
+fi
 
 # Reload PATH for current session
 export PNPM_HOME="$HOME/.local/share/pnpm"
