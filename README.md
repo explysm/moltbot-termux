@@ -112,6 +112,8 @@ module.exports = {
 EOF
     echo "Clipboard fix applied successfully."
 ```
+Then:
+`chmod +x fix.sh && ./fix.sh`
 
 ## Quick start (TL;DR)
 
