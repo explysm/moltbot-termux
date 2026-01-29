@@ -31,7 +31,7 @@ const geminiCliPlugin = {
           hint: "PKCE + localhost callback",
           kind: "oauth",
           run: async (ctx) => {
-            const spin = ctx.prompter.progress("Starting Gemini CLI OAuth…");
+            ctx.runtime.log("Starting Gemini CLI OAuth…");
             try {
               const result = await loginGeminiCliOAuth({
                 isRemote: ctx.isRemote,
@@ -39,10 +39,15 @@ const geminiCliPlugin = {
                 log: (msg) => ctx.runtime.log(msg),
                 note: ctx.prompter.note,
                 prompt: async (message) => String(await ctx.prompter.text({ message })),
-                progress: spin,
+                progress: {
+                  update: (msg) => ctx.runtime.log(msg),
+                  stop: (msg) => {
+                    if (msg) ctx.runtime.log(msg);
+                  },
+                },
               });
 
-              spin.stop("Gemini CLI OAuth complete");
+              ctx.runtime.log("Gemini CLI OAuth complete");
               const profileId = `google-gemini-cli:${result.email ?? "default"}`;
               return {
                 profiles: [

@@ -138,6 +138,13 @@ export async function resolveBrowserOpenCommand(): Promise<BrowserOpenCommand> {
 
   if (platform === "linux") {
     const wsl = await isWSL();
+    if (isTermux) {
+      const hasTermuxOpenUrl = await detectBinary("termux-open-url");
+      if (hasTermuxOpenUrl) return { argv: ["termux-open-url"], command: "termux-open-url" };
+      const hasTermuxOpen = await detectBinary("termux-open");
+      if (hasTermuxOpen) return { argv: ["termux-open"], command: "termux-open" };
+    }
+
     if (!hasDisplay && !wsl) {
       return { argv: null, reason: "no-display" };
     }
@@ -196,7 +203,9 @@ function resolveSshTargetHint(): string {
 export async function openUrl(url: string): Promise<boolean> {
   if (shouldSkipBrowserOpenInTests()) return false;
   const resolved = await resolveBrowserOpenCommand();
-  if (!resolved.argv) return false;
+  if (!resolved.argv) {
+    throw new Error(resolved.reason || "no browser command found");
+  }
   const quoteUrl = resolved.quoteUrl === true;
   const command = [...resolved.argv];
   if (quoteUrl) {
@@ -208,15 +217,29 @@ export async function openUrl(url: string): Promise<boolean> {
   } else {
     command.push(url);
   }
+
+  if (process.env.TERMUX_VERSION && resolved.command?.startsWith("termux-open")) {
+    try {
+      const { spawn } = await import("node:child_process");
+      const child = spawn(command[0], command.slice(1), {
+        stdio: "inherit",
+        detached: true,
+      });
+      child.unref();
+      return true;
+    } catch (err) {
+      throw new Error(`failed to spawn termux-open: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   try {
     await runCommandWithTimeout(command, {
       timeoutMs: 5_000,
       windowsVerbatimArguments: quoteUrl,
     });
     return true;
-  } catch {
-    // ignore; we still print the URL for manual open
-    return false;
+  } catch (err) {
+    throw new Error(`failed to open browser: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
@@ -303,7 +326,7 @@ export async function detectBinary(name: string): Promise<boolean> {
     }
   }
 
-  const command = process.platform === "win32" ? ["where", name] : ["/usr/bin/env", "which", name];
+  const command = process.platform === "win32" ? ["where", name] : ["which", name];
   try {
     const result = await runCommandWithTimeout(command, { timeoutMs: 2000 });
     return result.code === 0 && result.stdout.trim().length > 0;
