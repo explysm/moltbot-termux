@@ -46,7 +46,7 @@ async function startGateway() {
   }
 
   const moltbotExecutable = "moltbot"; // Assuming 'moltbot' is in PATH
-  const args = ["gateway", "--port", String(GATEWAY_PORT), "--verbose", "--bind", "127.0.0.1"]; // Added --bind 127.0.0.1
+  const args = ["gateway", "--port", String(GATEWAY_PORT), "--verbose", "--bind", "loopback"]; // Bind to loopback for local-only access
 
   const logStream = createWriteStream(LOG_FILE, { flags: "a" });
 
