@@ -31,3 +31,4 @@ Prevents DoS via mDNS poisoning with malicious hostnames
 Fixes CWE-88 (Argument Injection)
 
 
+3. rename moltbot ascii to OpenClaw Termux
