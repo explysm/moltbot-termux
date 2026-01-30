@@ -1,13 +1,10 @@
-import { spawn, spawnSync, ChildProcess } from "node:child_process";
+import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { existsSync, readFileSync, createWriteStream } from "node:fs";
-import { Writable } from "node:stream";
-import { Writable } from "node:stream"; // Added Writable
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import express from "express";
-import type { MoltbotConfig } from "../config/types";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -50,24 +47,24 @@ async function startGateway() {
 
   const moltbotExecutable = "moltbot"; // Assuming 'moltbot' is in PATH
   const args = ["gateway", "--port", String(GATEWAY_PORT), "--verbose", "--bind", "127.0.0.1"]; // Added --bind 127.0.0.1
-  
-  const logStream = createWriteStream(LOG_FILE, { flags: 'a' });
+
+  const logStream = createWriteStream(LOG_FILE, { flags: "a" });
 
   gatewayProcess = spawn(moltbotExecutable, args, {
-    stdio: ['ignore', logStream, logStream],
+    stdio: ["ignore", logStream, logStream],
     detached: true,
     env: { ...process.env },
-  }) as ChildProcessWithoutNullStreams;
+  }) as unknown as ChildProcessWithoutNullStreams;
 
   gatewayProcess.unref(); // Allow the Node.js event loop to exit without waiting for the child process
 
-  gatewayProcess.on("error", (err) => {
+  gatewayProcess.on("error", (err: Error) => {
     console.error(`Moltbot Gateway process error: ${err.message}`);
     gatewayProcess = null;
     releaseWakeLock();
   });
 
-  gatewayProcess.on("exit", (code, signal) => {
+  gatewayProcess.on("exit", (code: number | null, signal: NodeJS.Signals | null) => {
     console.log(`Moltbot Gateway process exited with code ${code}, signal ${signal}`);
     gatewayProcess = null;
     releaseWakeLock();
@@ -82,12 +79,14 @@ function stopGateway() {
   if (gatewayProcess) {
     console.log(`Attempting to stop Moltbot Gateway PID: ${gatewayProcess.pid}`);
     try {
-      process.kill(-gatewayProcess.pid!, 'SIGINT'); // Send SIGINT to the process group
+      process.kill(-gatewayProcess.pid!, "SIGINT"); // Send SIGINT to the process group
       gatewayProcess = null;
       releaseWakeLock();
       console.log("Moltbot Gateway stopped.");
     } catch (error) {
-      console.error(`Error stopping Moltbot Gateway: ${error.message}`);
+      console.error(
+        `Error stopping Moltbot Gateway: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   } else {
     console.log("Moltbot Gateway is not running.");
@@ -106,12 +105,11 @@ function getGatewayStatus() {
 // Get Chat Logs/Messages
 function getChatLogs(limit: number = 100): string[] {
   if (existsSync(LOG_FILE)) {
-    const logs = readFileSync(LOG_FILE, 'utf-8').split('\n');
+    const logs = readFileSync(LOG_FILE, "utf-8").split("\n");
     return logs.slice(-limit).filter(Boolean); // Return last 'limit' lines, filtering empty ones
   }
   return ["No logs available."];
 }
-
 
 // Start Tiny HTTP API Server
 async function startApiServer() {
@@ -130,7 +128,9 @@ async function startApiServer() {
       await startGateway();
       res.json({ status: "success", message: "Moltbot Gateway started." });
     } catch (error) {
-      res.status(500).json({ status: "error", message: error.message });
+      res
+        .status(500)
+        .json({ status: "error", message: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -139,7 +139,9 @@ async function startApiServer() {
       stopGateway();
       res.json({ status: "success", message: "Moltbot Gateway stopped." });
     } catch (error) {
-      res.status(500).json({ status: "error", message: error.message });
+      res
+        .status(500)
+        .json({ status: "error", message: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -171,7 +173,17 @@ async function startTtyd() {
   }
 
   const ttydCommand = "ttyd";
-  const ttydArgs = ["-p", String(TTYD_PORT), "--port", String(TTYD_PORT), "-i", "127.0.0.1", "tail", "-f", LOG_FILE];
+  const ttydArgs = [
+    "-p",
+    String(TTYD_PORT),
+    "--port",
+    String(TTYD_PORT),
+    "-i",
+    "127.0.0.1",
+    "tail",
+    "-f",
+    LOG_FILE,
+  ];
 
   ttydProcess = spawn(ttydCommand, ttydArgs, {
     detached: true,
@@ -180,12 +192,12 @@ async function startTtyd() {
 
   ttydProcess.unref();
 
-  ttydProcess.on("error", (err) => {
+  ttydProcess.on("error", (err: Error) => {
     console.error(`ttyd process error: ${err.message}`);
     ttydProcess = null;
   });
 
-  ttydProcess.on("exit", (code, signal) => {
+  ttydProcess.on("exit", (code: number | null, signal: NodeJS.Signals | null) => {
     console.log(`ttyd process exited with code ${code}, signal ${signal}`);
     ttydProcess = null;
   });
@@ -204,33 +216,37 @@ async function androidMain() {
   // The prompt suggests "start the main gateway using the standard command" when --android-app is passed,
   // so let's start it here.
   // Also launch ttyd
-  await startGateway(); 
+  await startGateway();
   await startTtyd();
 
   // Keep the main process alive (e.g., if API server is not detached)
   // Or, ensure graceful shutdown on SIGINT/SIGTERM
-  process.on('SIGINT', () => {
-    console.log('Received SIGINT. Shutting down...');
+  process.on("SIGINT", () => {
+    console.log("Received SIGINT. Shutting down...");
     stopGateway();
     if (ttydProcess) {
       try {
-        process.kill(-ttydProcess.pid!, 'SIGINT');
+        process.kill(-ttydProcess.pid!, "SIGINT");
       } catch (error) {
-        console.error(`Error stopping ttyd: ${error.message}`);
+        console.error(
+          `Error stopping ttyd: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
       ttydProcess = null;
     }
     releaseWakeLock();
     process.exit(0);
   });
-  process.on('SIGTERM', () => {
-    console.log('Received SIGTERM. Shutting down...');
+  process.on("SIGTERM", () => {
+    console.log("Received SIGTERM. Shutting down...");
     stopGateway();
     if (ttydProcess) {
       try {
-        process.kill(-ttydProcess.pid!, 'SIGTERM');
+        process.kill(-ttydProcess.pid!, "SIGTERM");
       } catch (error) {
-        console.error(`Error stopping ttyd: ${error.message}`);
+        console.error(
+          `Error stopping ttyd: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
       ttydProcess = null;
     }
