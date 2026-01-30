@@ -21,6 +21,7 @@ export type AuthChoiceGroupId =
   | "synthetic"
   | "venice"
   | "qwen"
+  | "xiaomi"
   | "ollama";
 
 export type AuthChoiceGroup = {
@@ -47,6 +48,12 @@ const AUTH_CHOICE_GROUP_DEFS: {
     label: "Anthropic",
     hint: "setup-token + API key",
     choices: ["token", "apiKey"],
+  },
+  {
+    value: "xiaomi",
+    label: "Xiaomi MiMo",
+    hint: "MiMo-V2-Flash (fast, 262k context)",
+    choices: ["xiaomi-api-key"],
   },
   {
     value: "ollama",
@@ -172,6 +179,11 @@ export function buildAuthChoiceOptions(params: {
   });
   options.push({ value: "zai-api-key", label: "Z.AI (GLM 4.7) API key" });
   options.push({ value: "qwen-portal", label: "Qwen OAuth" });
+  options.push({
+    value: "xiaomi-api-key",
+    label: "Xiaomi MiMo API key",
+    hint: "Fast inference, 262k-token context window",
+  });
   options.push({
     value: "copilot-proxy",
     label: "Copilot Proxy (local)",

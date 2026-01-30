@@ -31,6 +31,7 @@ export type AuthChoice =
   | "github-copilot"
   | "copilot-proxy"
   | "qwen-portal"
+  | "xiaomi-api-key"
   | "ollama"
   | "skip";
 export type GatewayAuthChoice = "token" | "password";
@@ -71,6 +72,7 @@ export type OnboardOptions = {
   minimaxApiKey?: string;
   syntheticApiKey?: string;
   veniceApiKey?: string;
+  xiaomiApiKey?: string;
   opencodeZenApiKey?: string;
   ollamaApiKey?: string;
   gatewayPort?: number;

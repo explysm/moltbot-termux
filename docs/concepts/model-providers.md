@@ -202,6 +202,34 @@ Model refs:
 
 See [/providers/qwen](/providers/qwen) for setup details and notes.
 
+### Xiaomi MiMo
+
+Xiaomi MiMo offers fast inference with a large context window:
+
+- Provider: `xiaomi`
+- Auth: `XIAOMI_API_KEY`
+- Example model: `xiaomi/mimo-v2-flash`
+- CLI: `moltbot onboard --auth-choice xiaomi-api-key`
+
+```json5
+{
+  agents: {
+    defaults: { model: { primary: "xiaomi/mimo-v2-flash" } }
+  },
+  models: {
+    mode: "merge",
+    providers: {
+      xiaomi: {
+        baseUrl: "https://api.mimo.ai/v1",
+        apiKey: "${XIAOMI_API_KEY}",
+        api: "openai-completions",
+        models: [{ id: "mimo-v2-flash", name: "MiMo-V2-Flash" }]
+      }
+    }
+  }
+}
+```
+
 ### Synthetic
 
 Synthetic provides Anthropic-compatible models behind the `synthetic` provider:

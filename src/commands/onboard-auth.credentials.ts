@@ -129,6 +129,19 @@ export async function setZaiApiKey(key: string, agentDir?: string) {
   });
 }
 
+export async function setXiaomiApiKey(key: string, agentDir?: string) {
+  // Write to resolved agent dir so gateway finds credentials on startup.
+  upsertAuthProfile({
+    profileId: "xiaomi:default",
+    credential: {
+      type: "api_key",
+      provider: "xiaomi",
+      key,
+    },
+    agentDir: resolveAuthAgentDir(agentDir),
+  });
+}
+
 export async function setOpenrouterApiKey(key: string, agentDir?: string) {
   upsertAuthProfile({
     profileId: "openrouter:default",

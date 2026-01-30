@@ -20,6 +20,12 @@ export const KIMI_CODE_MAX_TOKENS = 32768;
 export const KIMI_CODE_HEADERS = { "User-Agent": "KimiCLI/0.77" } as const;
 export const KIMI_CODE_COMPAT = { supportsDeveloperRole: false } as const;
 
+export const XIAOMI_BASE_URL = "https://platform.xiaomimimo.com/v1";
+export const XIAOMI_DEFAULT_MODEL_ID = "mimo-v2-flash";
+export const XIAOMI_DEFAULT_MODEL_REF = `xiaomi/${XIAOMI_DEFAULT_MODEL_ID}`;
+export const XIAOMI_DEFAULT_CONTEXT_WINDOW = 262144;
+export const XIAOMI_DEFAULT_MAX_TOKENS = 32768;
+
 // Pricing: MiniMax doesn't publish public rates. Override in models.json for accurate costs.
 export const MINIMAX_API_COST = {
   input: 15,
@@ -114,5 +120,22 @@ export function buildKimiCodeModelDefinition(): ModelDefinitionConfig {
     maxTokens: KIMI_CODE_MAX_TOKENS,
     headers: KIMI_CODE_HEADERS,
     compat: KIMI_CODE_COMPAT,
+  };
+}
+
+export function buildXiaomiModelDefinition(): ModelDefinitionConfig {
+  return {
+    id: XIAOMI_DEFAULT_MODEL_ID,
+    name: "MiMo-V2-Flash",
+    reasoning: false,
+    input: ["text"],
+    cost: {
+      input: 0,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+    },
+    contextWindow: XIAOMI_DEFAULT_CONTEXT_WINDOW,
+    maxTokens: XIAOMI_DEFAULT_MAX_TOKENS,
   };
 }
