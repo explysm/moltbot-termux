@@ -90,9 +90,18 @@ interface OllamaTagsResponse {
   models: OllamaModel[];
 }
 
+interface OllamaShowResponse {
+  details: {
+    families: string[] | null;
+  };
+}
+
 async function discoverOllamaModels(): Promise<ModelDefinitionConfig[]> {
-  // Skip Ollama discovery in test environments
-  if (process.env.VITEST || process.env.NODE_ENV === "test") {
+  // Skip Ollama discovery in test environments unless explicitly enabled
+  if (
+    (process.env.VITEST || process.env.NODE_ENV === "test") &&
+    !process.env.MOLTBOT_TEST_OLLAMA
+  ) {
     return [];
   }
   try {
@@ -108,7 +117,27 @@ async function discoverOllamaModels(): Promise<ModelDefinitionConfig[]> {
       console.warn("No Ollama models found on local instance");
       return [];
     }
-    return data.models.map((model) => {
+
+    const modelsWithDetails = await Promise.all(
+      data.models.map(async (model) => {
+        try {
+          const showResponse = await fetch(`${OLLAMA_API_BASE_URL}/api/show`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: model.name }),
+            signal: AbortSignal.timeout(5000),
+          });
+          if (!showResponse.ok) return { ...model, supportsTools: false };
+          const showData = (await showResponse.json()) as OllamaShowResponse;
+          const supportsTools = showData.details?.families?.includes("tool_use") ?? false;
+          return { ...model, supportsTools };
+        } catch {
+          return { ...model, supportsTools: false };
+        }
+      }),
+    );
+
+    return modelsWithDetails.map((model) => {
       const modelId = model.name;
       const isReasoning =
         modelId.toLowerCase().includes("r1") || modelId.toLowerCase().includes("reasoning");
@@ -120,6 +149,9 @@ async function discoverOllamaModels(): Promise<ModelDefinitionConfig[]> {
         cost: OLLAMA_DEFAULT_COST,
         contextWindow: OLLAMA_DEFAULT_CONTEXT_WINDOW,
         maxTokens: OLLAMA_DEFAULT_MAX_TOKENS,
+        compat: {
+          supportsTools: model.supportsTools,
+        },
       };
     });
   } catch (error) {
@@ -410,12 +442,16 @@ export async function resolveImplicitProviders(params: {
     };
   }
 
-  // Ollama provider - only add if explicitly configured
-  const ollamaKey =
-    resolveEnvApiKeyVarName("ollama") ??
-    resolveApiKeyFromProfiles({ provider: "ollama", store: authStore });
-  if (ollamaKey) {
-    providers.ollama = { ...(await buildOllamaProvider()), apiKey: ollamaKey };
+  // Ollama provider - native local discovery, but only if opted in
+  const ollamaProfiles = listProfilesForProvider(authStore, "ollama");
+  if (ollamaProfiles.length > 0) {
+    const ollamaProvider = await buildOllamaProvider();
+    if (ollamaProvider.models.length > 0) {
+      const ollamaKey =
+        resolveEnvApiKeyVarName("ollama") ??
+        resolveApiKeyFromProfiles({ provider: "ollama", store: authStore });
+      providers.ollama = { ...ollamaProvider, apiKey: ollamaKey ?? "ollama" };
+    }
   }
 
   return providers;

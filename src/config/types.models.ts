@@ -11,6 +11,8 @@ export type ModelCompatConfig = {
   supportsDeveloperRole?: boolean;
   supportsReasoningEffort?: boolean;
   maxTokensField?: "max_completion_tokens" | "max_tokens";
+  /** True if the model supports tool use. */
+  supportsTools?: boolean;
 };
 
 export type ModelProviderAuthMode = "api-key" | "aws-sdk" | "oauth" | "token";

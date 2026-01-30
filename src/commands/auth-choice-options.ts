@@ -20,7 +20,8 @@ export type AuthChoiceGroupId =
   | "minimax"
   | "synthetic"
   | "venice"
-  | "qwen";
+  | "qwen"
+  | "ollama";
 
 export type AuthChoiceGroup = {
   value: AuthChoiceGroupId;
@@ -46,6 +47,12 @@ const AUTH_CHOICE_GROUP_DEFS: {
     label: "Anthropic",
     hint: "setup-token + API key",
     choices: ["token", "apiKey"],
+  },
+  {
+    value: "ollama",
+    label: "Ollama",
+    hint: "Local LLMs (auto-discovery)",
+    choices: ["ollama"],
   },
   {
     value: "minimax",
@@ -178,6 +185,11 @@ export function buildAuthChoiceOptions(params: {
     hint: "Claude, GPT, Gemini via opencode.ai/zen",
   });
   options.push({ value: "minimax-api", label: "MiniMax M2.1" });
+  options.push({
+    value: "ollama",
+    label: "Ollama (local LLMs)",
+    hint: "Auto-discovers models from a local Ollama instance",
+  });
   options.push({
     value: "minimax-api-lightning",
     label: "MiniMax M2.1 Lightning",

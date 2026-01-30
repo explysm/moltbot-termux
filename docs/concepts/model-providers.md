@@ -241,7 +241,7 @@ See [/providers/minimax](/providers/minimax) for setup details, model options, a
 
 ### Ollama
 
-Ollama is a local LLM runtime that provides an OpenAI-compatible API:
+Ollama is a local LLM runtime that provides an OpenAI-compatible API. Select **Ollama** during `moltbot onboard` to enable auto-discovery of local models.
 
 - Provider: `ollama`
 - Auth: None required (local server)
@@ -261,7 +261,7 @@ ollama pull llama3.3
 }
 ```
 
-Ollama is automatically detected when running locally at `http://127.0.0.1:11434/v1`. See [/providers/ollama](/providers/ollama) for model recommendations and custom configuration.
+See [/providers/ollama](/providers/ollama) for model recommendations and custom configuration.
 
 ### Local proxies (LM Studio, vLLM, LiteLLM, etc.)
 
