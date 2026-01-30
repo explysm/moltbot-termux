@@ -44,7 +44,7 @@ moltbot gateway --port 18789 --verbose
 
 ### 🛠 Essential Fixes for Termux
 
-**NDK Build Fix** (if npm installation fails):
+**NDK Build Fix** (if gemini cli npm installation fails):
 ```bash
 mkdir -p ~/.gyp && echo "{ 'variables': { 'android_ndk_path': '' } }" > ~/.gyp/include.gypi
 ```
