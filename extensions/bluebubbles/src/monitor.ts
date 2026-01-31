@@ -363,7 +363,13 @@ function getOrCreateDebouncer(target: WebhookTarget) {
     debounceMs: resolveBlueBubblesDebounceMs(config, core),
     buildKey: (entry) => {
       const msg = entry.message;
-      // Build key from account + chat + sender to coalesce messages from same source
+      // If we have a messageId, use it as the primary key for exact-message coalescing
+      // (e.g. text + attachment components of the same message).
+      if (msg.messageId) {
+        return `bluebubbles:${account.accountId}:msg:${msg.messageId}`;
+      }
+      // Build key from account + chat + sender to coalesce rapid-fire messages from same source
+      // (e.g. separate URL text and balloon messages).
       const chatKey =
         msg.chatGuid?.trim() ??
         msg.chatIdentifier?.trim() ??
@@ -372,8 +378,9 @@ function getOrCreateDebouncer(target: WebhookTarget) {
     },
     shouldDebounce: (entry) => {
       const msg = entry.message;
-      // Skip debouncing for messages with attachments - process immediately
-      if (msg.attachments && msg.attachments.length > 0) return false;
+      // Allow debouncing for messages with attachments if they have a messageId
+      // so they can be coalesced with the text part.
+      if (msg.attachments && msg.attachments.length > 0 && !msg.messageId) return false;
       // Skip debouncing for from-me messages (they're just cached, not processed)
       if (msg.fromMe) return false;
       // Skip debouncing for control commands - process immediately

@@ -145,7 +145,7 @@ export async function handleSendChat(
     return;
   }
 
-  const refreshSessions = isChatResetCommand(message);
+  const refreshSessions = message.startsWith("/");
   if (messageOverride == null) {
     host.chatMessage = "";
     // Clear attachments when sending

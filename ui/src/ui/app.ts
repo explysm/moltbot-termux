@@ -26,7 +26,11 @@ import type {
 } from "./types";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types";
 import type { EventLogEntry } from "./app-events";
-import { DEFAULT_CRON_FORM, DEFAULT_LOG_LEVEL_FILTERS } from "./app-defaults";
+import {
+  DEFAULT_CRON_FORM,
+  DEFAULT_LOG_LEVEL_FILTERS,
+  DEFAULT_SESSIONS_ACTIVE_MINUTES,
+} from "./app-defaults";
 import type {
   ExecApprovalsFile,
   ExecApprovalsSnapshot,
@@ -199,7 +203,7 @@ export class MoltbotApp extends LitElement {
   @state() sessionsLoading = false;
   @state() sessionsResult: SessionsListResult | null = null;
   @state() sessionsError: string | null = null;
-  @state() sessionsFilterActive = "";
+  @state() sessionsFilterActive = DEFAULT_SESSIONS_ACTIVE_MINUTES;
   @state() sessionsFilterLimit = "120";
   @state() sessionsIncludeGlobal = true;
   @state() sessionsIncludeUnknown = false;

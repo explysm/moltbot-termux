@@ -93,7 +93,7 @@ function resolveAnnounceOrigin(
   entry?: DeliveryContextSource,
   requesterOrigin?: DeliveryContext,
 ): DeliveryContext | undefined {
-  return mergeDeliveryContext(deliveryContextFromSession(entry), requesterOrigin);
+  return mergeDeliveryContext(requesterOrigin, deliveryContextFromSession(entry));
 }
 
 async function sendAnnounce(item: AnnounceQueueItem) {

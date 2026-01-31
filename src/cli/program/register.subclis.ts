@@ -227,6 +227,14 @@ const entries: SubCliEntry[] = [
       mod.registerUpdateCli(program);
     },
   },
+  {
+    name: "completion",
+    description: "Generate shell completion scripts",
+    register: async (program) => {
+      const mod = await import("../completion-cli.js");
+      mod.registerCompletionCli(program);
+    },
+  },
 ];
 
 function removeCommand(program: Command, command: Command) {

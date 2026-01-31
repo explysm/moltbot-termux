@@ -37,9 +37,18 @@ export function resolveControlUiDistIndexPath(
 ): string | null {
   if (!argv1) return null;
   const normalized = path.resolve(argv1);
-  const distDir = path.dirname(normalized);
-  if (path.basename(distDir) !== "dist") return null;
-  return path.join(distDir, "control-ui", "index.html");
+  const dir = path.dirname(normalized);
+
+  // Case 1: Running from dist/*.js (e.g. dist/entry.js)
+  if (path.basename(dir) === "dist") {
+    return path.join(dir, "control-ui", "index.html");
+  }
+
+  // Case 2: Running from root (e.g. moltbot.mjs)
+  const rootDist = path.join(dir, "dist", "control-ui", "index.html");
+  if (fs.existsSync(rootDist)) return rootDist;
+
+  return null;
 }
 
 export type EnsureControlUiAssetsResult = {

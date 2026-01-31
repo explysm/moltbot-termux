@@ -175,7 +175,7 @@ export async function promptGatewayConfig(
       }),
       runtime,
     );
-    gatewayToken = String(tokenInput).trim() || randomToken();
+    gatewayToken = (typeof tokenInput === "string" ? tokenInput.trim() : "") || randomToken();
   }
 
   if (authMode === "password") {
@@ -186,7 +186,7 @@ export async function promptGatewayConfig(
       }),
       runtime,
     );
-    gatewayPassword = String(password).trim();
+    gatewayPassword = typeof password === "string" ? password.trim() : "";
   }
 
   const authConfig = buildGatewayAuthConfig({

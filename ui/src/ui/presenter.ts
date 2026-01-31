@@ -26,6 +26,27 @@ export function formatSessionTokens(row: GatewaySessionRow) {
   return ctx ? `${total} / ${ctx}` : String(total);
 }
 
+export function formatSessionDisplayName(row: GatewaySessionRow): string {
+  if (row.displayName && row.displayName !== row.key) {
+    return row.displayName;
+  }
+
+  const key = row.key;
+  // agent:main:whatsapp:dm:+1555... -> whatsapp:dm:+1555...
+  const parts = key.split(":");
+  if (parts[0] === "agent" && parts.length >= 3) {
+    const rest = parts.slice(2).join(":");
+    // Prettify common platforms
+    if (rest.startsWith("whatsapp:")) return rest.replace("whatsapp:", "WhatsApp:");
+    if (rest.startsWith("telegram:")) return rest.replace("telegram:", "Telegram:");
+    if (rest.startsWith("discord:")) return rest.replace("discord:", "Discord:");
+    if (rest.startsWith("slack:")) return rest.replace("slack:", "Slack:");
+    return rest;
+  }
+
+  return row.displayName ?? key;
+}
+
 export function formatEventPayload(payload: unknown): string {
   if (payload == null) return "";
   try {

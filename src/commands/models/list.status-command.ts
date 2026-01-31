@@ -1,5 +1,10 @@
 import path from "node:path";
-import { resolveMoltbotAgentDir } from "../../agents/agent-paths.js";
+import {
+  resolveAgentDir,
+  resolveDefaultAgentId,
+  resolveAgentModelPrimary,
+  resolveAgentModelFallbacksOverride,
+} from "../../agents/agent-scope.js";
 import {
   buildAuthHealthSummary,
   DEFAULT_OAUTH_WARN_MS,
@@ -14,7 +19,7 @@ import { resolveEnvApiKey } from "../../agents/model-auth.js";
 import {
   buildModelAliasIndex,
   parseModelRef,
-  resolveConfiguredModelRef,
+  resolveDefaultModelForAgent,
   resolveModelRefFromString,
 } from "../../agents/model-selection.js";
 import { CONFIG_PATH, loadConfig } from "../../config/config.js";
@@ -53,6 +58,7 @@ export async function modelsStatusCommand(
     probeTimeout?: string;
     probeConcurrency?: string;
     probeMaxTokens?: string;
+    agent?: string;
   },
   runtime: RuntimeEnv,
 ) {
@@ -61,11 +67,15 @@ export async function modelsStatusCommand(
     throw new Error("--probe cannot be used with --plain output.");
   }
   const cfg = loadConfig();
-  const resolved = resolveConfiguredModelRef({
+  const agentId = opts.agent || resolveDefaultAgentId(cfg);
+  const resolved = resolveDefaultModelForAgent({
     cfg,
-    defaultProvider: DEFAULT_PROVIDER,
-    defaultModel: DEFAULT_MODEL,
+    agentId,
   });
+
+  const agentDir = resolveAgentDir(cfg, agentId);
+  const store = ensureAuthProfileStore(agentDir);
+  const modelsPath = path.join(agentDir, "models.json");
 
   const modelConfig = cfg.agents?.defaults?.model as
     | { primary?: string; fallbacks?: string[] }
@@ -75,11 +85,14 @@ export async function modelsStatusCommand(
     | { primary?: string; fallbacks?: string[] }
     | string
     | undefined;
-  const rawModel =
-    typeof modelConfig === "string" ? modelConfig.trim() : (modelConfig?.primary?.trim() ?? "");
+
+  const agentModelPrimary = resolveAgentModelPrimary(cfg, agentId);
+  const agentModelFallbacks = resolveAgentModelFallbacksOverride(cfg, agentId);
+
+  const rawModel = agentModelPrimary ?? (typeof modelConfig === "string" ? modelConfig.trim() : (modelConfig?.primary?.trim() ?? ""));
   const resolvedLabel = `${resolved.provider}/${resolved.model}`;
   const defaultLabel = rawModel || resolvedLabel;
-  const fallbacks = typeof modelConfig === "object" ? (modelConfig?.fallbacks ?? []) : [];
+  const fallbacks = agentModelFallbacks ?? (typeof modelConfig === "object" ? (modelConfig?.fallbacks ?? []) : []);
   const imageModel =
     typeof imageConfig === "string" ? imageConfig.trim() : (imageConfig?.primary?.trim() ?? "");
   const imageFallbacks = typeof imageConfig === "object" ? (imageConfig?.fallbacks ?? []) : [];
@@ -92,10 +105,6 @@ export async function modelsStatusCommand(
     {},
   );
   const allowed = Object.keys(cfg.agents?.defaults?.models ?? {});
-
-  const agentDir = resolveMoltbotAgentDir();
-  const store = ensureAuthProfileStore();
-  const modelsPath = path.join(agentDir, "models.json");
 
   const providersFromStore = new Set(
     Object.values(store.profiles)
@@ -156,7 +165,7 @@ export async function modelsStatusCommand(
     shouldEnableShellEnvFallback(process.env) || cfg.env?.shellEnv?.enabled === true;
 
   const providerAuth = providers
-    .map((provider) => resolveProviderAuthOverview({ provider, cfg, store, modelsPath }))
+    .map((provider) => resolveProviderAuthOverview({ provider, cfg, store, modelsPath, agentDir }))
     .filter((entry) => {
       const hasAny = entry.profiles.count > 0 || Boolean(entry.env) || Boolean(entry.modelsJson);
       return hasAny;
@@ -304,7 +313,7 @@ export async function modelsStatusCommand(
           aliases,
           allowed,
           auth: {
-            storePath: resolveAuthStorePathForDisplay(),
+            storePath: resolveAuthStorePathForDisplay(agentDir),
             shellEnvFallback: {
               enabled: shellFallbackEnabled,
               appliedKeys: applied,
@@ -411,7 +420,7 @@ export async function modelsStatusCommand(
     `${label("Auth store")}${colorize(rich, theme.muted, ":")} ${colorize(
       rich,
       theme.info,
-      shortenHomePath(resolveAuthStorePathForDisplay()),
+      shortenHomePath(resolveAuthStorePathForDisplay(agentDir)),
     )}`,
   );
   runtime.log(

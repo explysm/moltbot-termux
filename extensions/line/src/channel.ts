@@ -129,12 +129,14 @@ export const linePlugin: ChannelPlugin<ResolvedLineAccount> = {
         },
       };
     },
-    isConfigured: (account) => Boolean(account.channelAccessToken?.trim()),
+    isConfigured: (account) =>
+      Boolean(account.channelAccessToken?.trim()) && Boolean(account.channelSecret?.trim()),
     describeAccount: (account) => ({
       accountId: account.accountId,
       name: account.name,
       enabled: account.enabled,
-      configured: Boolean(account.channelAccessToken?.trim()),
+      configured:
+        Boolean(account.channelAccessToken?.trim()) && Boolean(account.channelSecret?.trim()),
       tokenSource: account.tokenSource,
     }),
     resolveAllowFrom: ({ cfg, accountId }) =>
@@ -560,19 +562,42 @@ export const linePlugin: ChannelPlugin<ResolvedLineAccount> = {
       lastStopAt: null,
       lastError: null,
     },
-    collectStatusIssues: ({ account }) => {
-      const issues: Array<{ level: "error" | "warning"; message: string }> = [];
-      if (!account.channelAccessToken?.trim()) {
-        issues.push({
-          level: "error",
-          message: "LINE channel access token not configured",
-        });
-      }
-      if (!account.channelSecret?.trim()) {
-        issues.push({
-          level: "error",
-          message: "LINE channel secret not configured",
-        });
+    collectStatusIssues: (accounts) => {
+      const issues: ChannelStatusIssue[] = [];
+      for (const account of accounts) {
+        const accountId = account.accountId;
+        const hasToken = (account as any).hasToken ?? account.configured;
+        const hasSecret = (account as any).hasSecret ?? account.configured;
+
+        if (!hasToken) {
+          issues.push({
+            channel: "line",
+            accountId,
+            kind: "config",
+            message: "LINE channel access token not configured",
+            fix: "Run: moltbot channels add line --channel-access-token <token>",
+          });
+        }
+        if (!hasSecret) {
+          issues.push({
+            channel: "line",
+            accountId,
+            kind: "config",
+            message: "LINE channel secret not configured",
+            fix: "Run: moltbot channels add line --channel-secret <secret>",
+          });
+        }
+
+        const probe = account.probe as any;
+        if (probe && probe.ok === false) {
+          issues.push({
+            channel: "line",
+            accountId,
+            kind: "runtime",
+            message: `LINE bot probe failed: ${probe.error || "unknown error"}`,
+            fix: "Check your LINE channel access token and internet connection.",
+          });
+        }
       }
       return issues;
     },
@@ -590,12 +615,13 @@ export const linePlugin: ChannelPlugin<ResolvedLineAccount> = {
     probeAccount: async ({ account, timeoutMs }) =>
       getLineRuntime().channel.line.probeLineBot(account.channelAccessToken, timeoutMs),
     buildAccountSnapshot: ({ account, runtime, probe }) => {
-      const configured = Boolean(account.channelAccessToken?.trim());
+      const hasToken = Boolean(account.channelAccessToken?.trim());
+      const hasSecret = Boolean(account.channelSecret?.trim());
       return {
         accountId: account.accountId,
         name: account.name,
         enabled: account.enabled,
-        configured,
+        configured: hasToken && hasSecret,
         tokenSource: account.tokenSource,
         running: runtime?.running ?? false,
         lastStartAt: runtime?.lastStartAt ?? null,
@@ -605,7 +631,10 @@ export const linePlugin: ChannelPlugin<ResolvedLineAccount> = {
         probe,
         lastInboundAt: runtime?.lastInboundAt ?? null,
         lastOutboundAt: runtime?.lastOutboundAt ?? null,
-      };
+        // Custom fields for collectStatusIssues
+        hasToken,
+        hasSecret,
+      } as ChannelAccountSnapshot;
     },
   },
   gateway: {

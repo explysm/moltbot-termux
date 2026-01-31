@@ -1,7 +1,7 @@
 import { html, nothing } from "lit";
 
 import { formatAgo } from "../format";
-import { formatSessionTokens } from "../presenter";
+import { formatSessionDisplayName, formatSessionTokens } from "../presenter";
 import { pathForTab } from "../navigation";
 import type { GatewaySessionRow, SessionsListResult } from "../types";
 
@@ -185,7 +185,7 @@ function renderRow(
   const thinkLevels = resolveThinkLevelOptions(row.modelProvider);
   const verbose = row.verboseLevel ?? "";
   const reasoning = row.reasoningLevel ?? "";
-  const displayName = row.displayName ?? row.key;
+  const displayName = formatSessionDisplayName(row);
   const canLink = row.kind !== "global";
   const chatUrl = canLink
     ? `${pathForTab("chat", basePath)}?session=${encodeURIComponent(row.key)}`

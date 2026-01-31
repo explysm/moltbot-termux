@@ -108,11 +108,16 @@ export async function promptRemoteGatewayConfig(
     message: "Gateway WebSocket URL",
     initialValue: suggestedUrl,
     validate: (value) =>
-      String(value).trim().startsWith("ws://") || String(value).trim().startsWith("wss://")
+      (typeof value === "string" ? value : String(value ?? ""))
+        .trim()
+        .startsWith("ws://") ||
+      (typeof value === "string" ? value : String(value ?? ""))
+        .trim()
+        .startsWith("wss://")
         ? undefined
         : "URL must start with ws:// or wss://",
   });
-  const url = ensureWsUrl(String(urlInput));
+  const url = ensureWsUrl(typeof urlInput === "string" ? urlInput : "");
 
   const authChoice = (await prompter.select({
     message: "Gateway auth",
@@ -124,13 +129,12 @@ export async function promptRemoteGatewayConfig(
 
   let token = cfg.gateway?.remote?.token ?? "";
   if (authChoice === "token") {
-    token = String(
-      await prompter.text({
-        message: "Gateway token",
-        initialValue: token,
-        validate: (value) => (value?.trim() ? undefined : "Required"),
-      }),
-    ).trim();
+    const tokenInput = await prompter.text({
+      message: "Gateway token",
+      initialValue: token,
+      validate: (value) => (value?.trim() ? undefined : "Required"),
+    });
+    token = (typeof tokenInput === "string" ? tokenInput.trim() : "") || "";
   } else {
     token = "";
   }

@@ -17,8 +17,9 @@ export function resolveProviderAuthOverview(params: {
   cfg: MoltbotConfig;
   store: AuthProfileStore;
   modelsPath: string;
+  agentDir?: string;
 }): ProviderAuthOverview {
-  const { provider, cfg, store } = params;
+  const { provider, cfg, store, agentDir } = params;
   const now = Date.now();
   const profiles = listProfilesForProvider(store, provider);
   const withUnusableSuffix = (base: string, profileId: string) => {
@@ -62,7 +63,7 @@ export function resolveProviderAuthOverview(params: {
     if (profiles.length > 0) {
       return {
         kind: "profiles",
-        detail: shortenHomePath(resolveAuthStorePathForDisplay()),
+        detail: shortenHomePath(resolveAuthStorePathForDisplay(agentDir)),
       };
     }
     if (envKey) {

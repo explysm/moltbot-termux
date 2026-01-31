@@ -31,3 +31,5 @@ export const DEFAULT_CRON_FORM: CronFormState = {
   timeoutSeconds: "",
   postToMainPrefix: "",
 };
+
+export const DEFAULT_SESSIONS_ACTIVE_MINUTES = "120";

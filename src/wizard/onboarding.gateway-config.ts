@@ -180,7 +180,7 @@ export async function configureGatewayForOnboarding(
         placeholder: "Needed for multi-machine or non-loopback access",
         initialValue: quickstartGateway.token ?? "",
       });
-      gatewayToken = String(tokenInput).trim() || randomToken();
+      gatewayToken = (typeof tokenInput === "string" ? tokenInput.trim() : "") || randomToken();
     }
   }
 
@@ -199,7 +199,7 @@ export async function configureGatewayForOnboarding(
         auth: {
           ...nextConfig.gateway?.auth,
           mode: "password",
-          password: String(password).trim(),
+          password: (typeof password === "string" ? password.trim() : "") || "",
         },
       },
     };
