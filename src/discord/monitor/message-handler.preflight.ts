@@ -73,10 +73,29 @@ export async function preflightDiscordMessage(
     }
   }
 
-  const isGuildMessage = Boolean(params.data.guild_id);
   const channelInfo = await resolveDiscordChannelInfo(params.client, message.channelId);
   const isDirectMessage = channelInfo?.type === ChannelType.DM;
   const isGroupDm = channelInfo?.type === ChannelType.GroupDM;
+  const isGuildMessage = !isDirectMessage && !isGroupDm;
+
+  const threadChannel = resolveDiscordThreadChannel({
+    isGuildMessage,
+    message,
+    channelInfo,
+  });
+  let threadParentId: string | undefined;
+  let threadParentName: string | undefined;
+  let threadParentType: ChannelType | undefined;
+  if (threadChannel) {
+    const parentInfo = await resolveDiscordThreadParentInfo({
+      client: params.client,
+      threadChannel,
+      channelInfo,
+    });
+    threadParentId = parentInfo.id;
+    threadParentName = parentInfo.name;
+    threadParentType = parentInfo.type;
+  }
 
   if (isGroupDm && !params.groupDmEnabled) {
     logVerbose("discord: drop group dm (group dms disabled)");
@@ -171,6 +190,7 @@ export async function preflightDiscordMessage(
     channel: "discord",
     accountId: params.accountId,
     guildId: params.data.guild_id ?? undefined,
+    parentId: threadParentId,
     peer: {
       kind: isDirectMessage ? "dm" : isGroupDm ? "group" : "channel",
       id: isDirectMessage ? author.id : message.channelId,
@@ -241,24 +261,6 @@ export async function preflightDiscordMessage(
     ((isGuildMessage || isGroupDm) && message.channel && "name" in message.channel
       ? message.channel.name
       : undefined);
-  const threadChannel = resolveDiscordThreadChannel({
-    isGuildMessage,
-    message,
-    channelInfo,
-  });
-  let threadParentId: string | undefined;
-  let threadParentName: string | undefined;
-  let threadParentType: ChannelType | undefined;
-  if (threadChannel) {
-    const parentInfo = await resolveDiscordThreadParentInfo({
-      client: params.client,
-      threadChannel,
-      channelInfo,
-    });
-    threadParentId = parentInfo.id;
-    threadParentName = parentInfo.name;
-    threadParentType = parentInfo.type;
-  }
   const threadName = threadChannel?.name;
   const configChannelName = threadParentName ?? channelName;
   const configChannelSlug = configChannelName ? normalizeDiscordSlug(configChannelName) : "";

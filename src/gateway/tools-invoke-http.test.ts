@@ -64,10 +64,9 @@ describe("POST /tools/invoke", () => {
     } as any;
 
     // minimal profile does NOT include agents_list, but alsoAllow should.
-    const { writeConfigFile } = await import("../config/config.js");
-    await writeConfigFile({
+    testState.config = {
       tools: { profile: "minimal", alsoAllow: ["agents_list"] },
-    } as any);
+    } as any;
 
     const port = await getFreePort();
     const server = await startGatewayServer(port, { bind: "loopback" });
@@ -91,12 +90,9 @@ describe("POST /tools/invoke", () => {
       list: [{ id: "main" }],
     } as any;
 
-    await fs.mkdir(path.dirname(CONFIG_PATH), { recursive: true });
-    await fs.writeFile(
-      CONFIG_PATH,
-      JSON.stringify({ tools: { alsoAllow: ["agents_list"] } }, null, 2),
-      "utf-8",
-    );
+    testState.config = {
+      tools: { alsoAllow: ["agents_list"] },
+    } as any;
 
     const port = await getFreePort();
     const server = await startGatewayServer(port, { bind: "loopback" });
@@ -268,10 +264,9 @@ describe("POST /tools/invoke", () => {
       ],
     } as any;
 
-    const { writeConfigFile } = await import("../config/config.js");
-    await writeConfigFile({
+    testState.config = {
       tools: { profile: "minimal" },
-    } as any);
+    } as any;
 
     const port = await getFreePort();
     const server = await startGatewayServer(port, { bind: "loopback" });

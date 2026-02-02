@@ -12,8 +12,11 @@ type UrbitSseOptions = {
   maxReconnectAttempts?: number;
   reconnectDelay?: number;
   maxReconnectDelay?: number;
+  fetchTimeoutMs?: number;
   logger?: UrbitSseLogger;
 };
+
+const DEFAULT_FETCH_TIMEOUT_MS = 30000;
 
 export class UrbitSSEClient {
   url: string;
@@ -40,6 +43,7 @@ export class UrbitSSEClient {
   maxReconnectAttempts: number;
   reconnectDelay: number;
   maxReconnectDelay: number;
+  fetchTimeoutMs: number;
   isConnected = false;
   logger: UrbitSseLogger;
 
@@ -54,6 +58,7 @@ export class UrbitSSEClient {
     this.maxReconnectAttempts = options.maxReconnectAttempts ?? 10;
     this.reconnectDelay = options.reconnectDelay ?? 1000;
     this.maxReconnectDelay = options.maxReconnectDelay ?? 30000;
+    this.fetchTimeoutMs = options.fetchTimeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
     this.logger = options.logger ?? {};
   }
 
@@ -114,6 +119,7 @@ export class UrbitSSEClient {
         Cookie: this.cookie,
       },
       body: JSON.stringify([subscription]),
+      signal: AbortSignal.timeout(this.fetchTimeoutMs),
     });
 
     if (!response.ok && response.status !== 204) {
@@ -130,6 +136,7 @@ export class UrbitSSEClient {
         Cookie: this.cookie,
       },
       body: JSON.stringify(this.subscriptions),
+      signal: AbortSignal.timeout(this.fetchTimeoutMs),
     });
 
     if (!createResp.ok && createResp.status !== 204) {
@@ -152,6 +159,7 @@ export class UrbitSSEClient {
           json: "Opening API channel",
         },
       ]),
+      signal: AbortSignal.timeout(this.fetchTimeoutMs),
     });
 
     if (!pokeResp.ok && pokeResp.status !== 204) {
@@ -267,6 +275,7 @@ export class UrbitSSEClient {
         Cookie: this.cookie,
       },
       body: JSON.stringify([pokeData]),
+      signal: AbortSignal.timeout(this.fetchTimeoutMs),
     });
 
     if (!response.ok && response.status !== 204) {
@@ -284,6 +293,7 @@ export class UrbitSSEClient {
       headers: {
         Cookie: this.cookie,
       },
+      signal: AbortSignal.timeout(this.fetchTimeoutMs),
     });
 
     if (!response.ok) {
@@ -352,6 +362,7 @@ export class UrbitSSEClient {
           Cookie: this.cookie,
         },
         body: JSON.stringify(unsubscribes),
+        signal: AbortSignal.timeout(this.fetchTimeoutMs),
       });
 
       await fetch(this.channelUrl, {
@@ -359,6 +370,7 @@ export class UrbitSSEClient {
         headers: {
           Cookie: this.cookie,
         },
+        signal: AbortSignal.timeout(this.fetchTimeoutMs),
       });
     } catch (error) {
       this.logger.error?.(`Error closing channel: ${String(error)}`);

@@ -10,6 +10,7 @@ export function ensureUrbitConnectPatched() {
       method: "POST",
       body: `password=${this.code}`,
       credentials: "include",
+      signal: AbortSignal.timeout(30000),
     });
 
     if (resp.status >= 400) {

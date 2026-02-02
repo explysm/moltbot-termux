@@ -91,6 +91,21 @@ mkdir -p ~/.gyp && echo "{ 'variables': { 'android_ndk_path': '' } }" > ~/.gyp/i
 
 ---
 
+### 🔃 Upstream Sync & Development
+
+**A Note on Upstream Sync**
+
+This project is a fork of the official OpenClaw repository and stays updated through a unique, semi-automated process. Instead of direct merges, which often lead to conflicts, this fork uses Gemini to interpret and re-implement commit messages from the upstream `main` branch.
+
+This approach has two important implications:
+
+1.  **Implementation Divergence**: The exact code from an upstream commit is not carried over. Gemini provides its own implementation based on the description in the commit message.
+2.  **Dependency on Commit Quality**: Vague or unclear commit messages may be skipped entirely if their intent cannot be reliably determined.
+
+While this method allows the project to keep pace with OpenClaw's development, it's a best-effort process that depends heavily on the clarity of the upstream commit history.
+
+---
+
 ### 🦞 Links & Support
 - **Official Documentation**: [docs.molt.bot](https://docs.molt.bot)
 - **Security Guidance**: [gateway/security](https://docs.molt.bot/gateway/security)

@@ -92,6 +92,10 @@ async function tryResolveOAuthProfile(params: {
   const { cfg, store, profileId } = params;
   const cred = store.profiles[profileId];
   if (!cred || cred.type !== "oauth") return null;
+
+  // Guard: validate provider
+  if (!cred.provider || typeof cred.provider !== "string") return null;
+
   const profileConfig = cfg?.auth?.profiles?.[profileId];
   if (profileConfig && profileConfig.provider !== cred.provider) return null;
   if (profileConfig && profileConfig.mode !== cred.type) return null;
@@ -125,6 +129,10 @@ export async function resolveApiKeyForProfile(params: {
   const { cfg, store, profileId } = params;
   const cred = store.profiles[profileId];
   if (!cred) return null;
+
+  // Guard: validate provider
+  if (!cred.provider || typeof cred.provider !== "string") return null;
+
   const profileConfig = cfg?.auth?.profiles?.[profileId];
   if (profileConfig && profileConfig.provider !== cred.provider) return null;
   if (profileConfig && profileConfig.mode !== cred.type) {
@@ -177,10 +185,14 @@ export async function resolveApiKeyForProfile(params: {
         email: refreshed.email ?? cred.email,
       };
     }
+    // Guard: ensure provider exists on refreshed entry
+    const provider = refreshed?.provider || cred.provider;
+    if (!provider) throw error;
+
     const fallbackProfileId = suggestOAuthProfileIdForLegacyDefault({
       cfg,
       store: refreshedStore,
-      provider: cred.provider,
+      provider,
       legacyProfileId: profileId,
     });
     if (fallbackProfileId && fallbackProfileId !== profileId) {

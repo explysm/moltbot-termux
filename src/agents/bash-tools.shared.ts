@@ -36,6 +36,31 @@ export function buildSandboxEnv(params: {
   return env;
 }
 
+/**
+ * Strictly validates environment variable keys and values to prevent injection
+ * and ensure compatibility across different shells and runtimes.
+ */
+export function validateEnvVars(env: Record<string, string>) {
+  for (const [key, value] of Object.entries(env)) {
+    // POSIX-ish check for keys: letters, digits, underscores, cannot start with a digit.
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
+      throw new Error(
+        `Invalid environment variable key: "${key}". ` +
+          "Keys must consist of letters, digits, and underscores, and cannot begin with a digit.",
+      );
+    }
+    // Strict value check: disallow characters that could be used for shell breakout
+    // or are generally problematic in environment variables.
+    // We disallow null bytes, newlines, carriage returns, and double quotes.
+    if (/[\0\n\r"]/.test(value)) {
+      throw new Error(
+        `Invalid environment variable value for "${key}". ` +
+          "Values cannot contain null bytes, newlines, or double quotes.",
+      );
+    }
+  }
+}
+
 export function coerceEnv(env?: NodeJS.ProcessEnv | Record<string, string>) {
   const record: Record<string, string> = {};
   if (!env) return record;

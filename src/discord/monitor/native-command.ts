@@ -708,6 +708,7 @@ async function dispatchDiscordCommandInteraction(params: {
     channel: "discord",
     accountId,
     guildId: interaction.guild?.id ?? undefined,
+    parentId: threadParentId,
     peer: {
       kind: isDirectMessage ? "dm" : isGroupDm ? "group" : "channel",
       id: isDirectMessage ? user.id : channelId,

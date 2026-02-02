@@ -24,6 +24,8 @@ export type ResolveAgentRouteInput = {
   peer?: RoutePeer | null;
   guildId?: string | null;
   teamId?: string | null;
+  /** Parent channel id for thread inheritance (Discord/Slack). */
+  parentId?: string | null;
 };
 
 export type ResolvedAgentRoute = {
@@ -147,6 +149,7 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
   const peer = input.peer ? { kind: input.peer.kind, id: normalizeId(input.peer.id) } : null;
   const guildId = normalizeId(input.guildId);
   const teamId = normalizeId(input.teamId);
+  const parentId = normalizeId(input.parentId);
 
   const bindings = listBindings(input.cfg).filter((binding) => {
     if (!binding || typeof binding !== "object") return false;
@@ -184,6 +187,13 @@ export function resolveAgentRoute(input: ResolveAgentRouteInput): ResolvedAgentR
   if (peer) {
     const peerMatch = bindings.find((b) => matchesPeer(b.match, peer));
     if (peerMatch) return choose(peerMatch.agentId, "binding.peer");
+  }
+
+  if (parentId) {
+    const parentMatch = bindings.find((b) =>
+      matchesPeer(b.match, { kind: "channel", id: parentId }),
+    );
+    if (parentMatch) return choose(parentMatch.agentId, "binding.peer");
   }
 
   if (guildId) {

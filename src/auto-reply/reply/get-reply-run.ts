@@ -44,11 +44,31 @@ import { ensureSkillSnapshot, prependSystemEvents } from "./session-updates.js";
 import type { TypingController } from "./typing.js";
 import { resolveTypingMode } from "./typing-mode.js";
 
+import {
+  loadAgentIdentityFromWorkspace,
+} from "../../agents/identity-file.js";
+
 type AgentDefaults = NonNullable<MoltbotConfig["agents"]>["defaults"];
 type ExecOverrides = Pick<ExecToolDefaults, "host" | "security" | "ask" | "node">;
 
-const BARE_SESSION_RESET_PROMPT =
-  "A new session was started via /new or /reset. Say hi briefly (1-2 sentences) and ask what the user wants to do next. If the runtime model differs from default_model in the system prompt, mention the default model in the greeting. Do not mention internal steps, files, tools, or reasoning.";
+function buildSessionResetPrompt(params: {
+  workspaceDir: string;
+}) {
+  const identity = loadAgentIdentityFromWorkspace(params.workspaceDir);
+  const personality = [
+    identity?.name ? `name: ${identity.name}` : null,
+    identity?.emoji ? `emoji: ${identity.emoji}` : null,
+    identity?.creature ? `creature: ${identity.creature}` : null,
+    identity?.vibe ? `vibe: ${identity.vibe}` : null,
+    identity?.theme ? `theme: ${identity.theme}` : null,
+  ].filter(Boolean).join(", ");
+
+  const personalityHint = personality
+    ? ` Speak according to your personality (${personality}).`
+    : "";
+
+  return `A new session was started via /new or /reset.${personalityHint} Say hi briefly (1-2 sentences) and ask what the user wants to do next. If the runtime model differs from default_model in the system prompt, mention the default model in the greeting. Do not mention internal steps, files, tools, or reasoning.`;
+}
 
 type RunPreparedReplyParams = {
   ctx: MsgContext;
@@ -197,7 +217,9 @@ export async function runPreparedReply(
   const isBareSessionReset =
     isNewSession &&
     ((baseBodyTrimmedRaw.length === 0 && rawBodyTrimmed.length > 0) || isBareNewOrReset);
-  const baseBodyFinal = isBareSessionReset ? BARE_SESSION_RESET_PROMPT : baseBody;
+  const baseBodyFinal = isBareSessionReset
+    ? buildSessionResetPrompt({ workspaceDir })
+    : baseBody;
   const baseBodyTrimmed = baseBodyFinal.trim();
   if (!baseBodyTrimmed) {
     await typing.onReplyStart();

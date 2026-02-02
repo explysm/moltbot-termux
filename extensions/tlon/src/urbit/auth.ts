@@ -3,6 +3,7 @@ export async function authenticate(url: string, code: string): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `password=${code}`,
+    signal: AbortSignal.timeout(30000),
   });
 
   if (!resp.ok) {

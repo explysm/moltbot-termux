@@ -50,6 +50,7 @@ import {
   resolveSandboxWorkdir,
   resolveWorkdir,
   truncateMiddle,
+  validateEnvVars,
 } from "./bash-tools.shared.js";
 import { callGatewayTool } from "./tools/gateway.js";
 import { listNodes, resolveNodeIdFromList } from "./tools/nodes-utils.js";
@@ -864,11 +865,13 @@ export function createExecTool(
         containerWorkdir = resolved.containerWorkdir;
       } else {
         workdir = resolveWorkdir(rawWorkdir, warnings);
-      }
-
-      const baseEnv = coerceEnv(process.env);
-      const mergedEnv = params.env ? { ...baseEnv, ...params.env } : baseEnv;
-      const env = sandbox
+            }
+            const baseEnv = coerceEnv(process.env);
+            if (params.env) {
+              validateEnvVars(params.env);
+            }
+            const mergedEnv = params.env ? { ...baseEnv, ...params.env } : baseEnv;
+            const env = sandbox
         ? buildSandboxEnv({
             defaultPath: DEFAULT_PATH,
             paramsEnv: params.env,

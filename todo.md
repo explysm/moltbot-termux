@@ -55,27 +55,27 @@ Go in order of which ones havent been done
 - [x] fix(tui): prevent crash when searching with digits in model selector
 - [x] fix: Missing before_tool_call hook integration
 - [x] Security: harden web tools and file parsing
-- [ ] feat(routing): add thread parent binding inheritance for Discord
-- [ ] /new: use agent personality in session greeting
-- [ ] feat: update chat layout and session management
-- [ ] require TLS 1.3 as minimum
-- [ ] fix(security): enforce strict environment variable validation in exec tool
-- [ ] fix(tlon): add timeout to SSE client fetch calls (CWE-400)
+- [x] feat(routing): add thread parent binding inheritance for Discord
+- [x] /new: use agent personality in session greeting
+- [?] feat: update chat layout and session management
+- [x] require TLS 1.3 as minimum
+- [x] fix(security): enforce strict environment variable validation in exec tool
+- [x] fix(tlon): add timeout to SSE client fetch calls (CWE-400)
 - [x] fix: align embedded runner with pi-coding-agent API
-- [ ] fix: refine oauth provider guard
+- [x] fix: refine oauth provider guard
 - [ ] fix: align pi-coding-agent typings and docs
-- [ ] fix(twitch): enforce allowFrom allowlist
+- [x] fix(twitch): enforce allowFrom allowlist
 - [x] fix: update pi packages to 0.51.0, remove bogus type augmentation
-- [ ] fix: format issues and lint error in oauth.ts
-- [ ] fix: convert HTML comments to MDX comments in docs
-- [ ] Gateway: avoid writing host config in tools invoke test
+- [?] fix: format issues and lint error in oauth.ts
+- [n] fix: convert HTML comments to MDX comments in docs
+- [x] Gateway: avoid writing host config in tools invoke test
 - [x] chore: Update deps.
-- [ ] chore: Add `pnpm check` for fast repo checks.
-- [ ] feat(routing): add thread parent binding inheritance for Discord
-- [ ] /new: use agent personality in session greeting
-- [ ] require TLS 1.3 as minimum
-- [ ] fix: refine oauth provider guard
-- [ ] fix: format issues and lint error in oauth.ts
-- [ ] fix: convert HTML comments to MDX comments in docs
-- [ ] Gateway: avoid writing host config in tools invoke test
-- [ ] chore: Add `pnpm check` for fast repo checks.
+- [x] chore: Add `pnpm check` for fast repo checks.
+- [x] feat(routing): add thread parent binding inheritance for Discord
+- [x] /new: use agent personality in session greeting
+- [x] require TLS 1.3 as minimum
+- [x] fix: refine oauth provider guard
+- [?] fix: format issues and lint error in oauth.ts
+- [n] fix: convert HTML comments to MDX comments in docs
+- [x] Gateway: avoid writing host config in tools invoke test
+- [x] chore: Add `pnpm check` for fast repo checks.

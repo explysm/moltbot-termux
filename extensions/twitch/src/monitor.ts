@@ -11,6 +11,7 @@ import { checkTwitchAccessControl } from "./access-control.js";
 import { getTwitchRuntime } from "./runtime.js";
 import { getOrCreateClientManager } from "./client-manager-registry.js";
 import { stripMarkdownForTwitch } from "./utils/markdown.js";
+import { checkTwitchAccessControl } from "./access-control.js";
 
 export type TwitchRuntimeEnv = {
   log?: (message: string) => void;
@@ -218,6 +219,19 @@ export async function monitorTwitchProvider(
     const botUsername = account.username.toLowerCase();
     if (message.username.toLowerCase() === botUsername) {
       return; // Ignore own messages
+    }
+
+    const access = checkTwitchAccessControl({
+      message,
+      account,
+      botUsername,
+    });
+
+    if (!access.allowed) {
+      if (access.reason) {
+        runtime.log?.(`Access denied for ${message.username}: ${access.reason}`);
+      }
+      return;
     }
 
     const access = checkTwitchAccessControl({
