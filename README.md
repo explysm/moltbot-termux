@@ -1,3 +1,6 @@
+# ARCHIVE NOTICE
+After some major consideration, I've decided to archive this project & stop development as it's become too difficult to maintain. You can still run original OpenClaw using the clipboard fix. (see troubleshooting and fixes)
+
 # 🦞 OpenClaw Termux
 
 <p align="center">
